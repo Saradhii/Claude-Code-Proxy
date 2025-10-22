@@ -1,6 +1,6 @@
 {
   "name": "claude-code-proxy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Format conversion proxy enabling Claude Code CLI to work with GLM-4.5-Air model including full tool calling support",
   "type": "module",
   "main": "src/anthropic-proxy.js",
