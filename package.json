@@ -1,11 +1,11 @@
 {
-  "name": "codex-proxy",
-  "version": "1.0.2",
+  "name": "claude-code-proxy",
+  "version": "1.0.3",
   "description": "Format conversion proxy enabling Claude Code CLI to work with GLM-4.5-Air model including full tool calling support",
   "type": "module",
   "main": "src/anthropic-proxy.js",
   "bin": {
-    "codex-proxy": "./src/anthropic-proxy.js"
+    "claude-code-proxy": "./src/anthropic-proxy.js"
   },
   "scripts": {
     "start": "node src/anthropic-proxy.js",
@@ -21,6 +21,7 @@
   ],
   "keywords": [
     "claude-code",
+    "claude-code-proxy",
     "proxy",
     "glm",
     "glm-4.5",
@@ -37,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Saradhii/Codex.git"
+    "url": "https://github.com/Saradhii/Claude-Code-Proxy.git"
   },
   "preferGlobal": true,
   "dependencies": {

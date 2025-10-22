@@ -14,7 +14,7 @@ Get up and running with Claude Code + GLM-4.5-Air in 5 minutes!
 
 ```bash
 # Clone or download this project
-cd /path/to/Codex
+cd /path/to/Claude-Code-Proxy
 
 # Install dependencies
 npm install
@@ -39,7 +39,7 @@ npm run proxy:debug
 You should see:
 ```
 ╔═══════════════════════════════════════════════════════════════╗
-║   🚀 Anthropic <-> OpenAI Proxy Server                       ║
+║   🚀 Claude Code Proxy Server                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 
 Configuration:

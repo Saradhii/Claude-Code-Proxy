@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Codex Proxy - Claude Code to GLM-4.5-Air Format Conversion Proxy
+ * Claude Code Proxy - Claude Code to GLM-4.5-Air Format Conversion Proxy
  * Bridges Claude Code CLI with GLM-4.5-Air model via format conversion
  */
 
@@ -26,10 +26,10 @@ for (let i = 0; i < args.length; i++) {
     cliPort = parseInt(args[++i]);
   } else if (arg === '--help' || arg === '-h') {
     console.log(`
-Codex Proxy - Claude Code to GLM-4.5-Air Format Conversion Proxy
+Claude Code Proxy - Claude Code to GLM-4.5-Air Format Conversion Proxy
 
 Usage:
-  codex-proxy [options]
+  claude-code-proxy [options]
 
 Options:
   --debug, -d        Enable debug logging (verbose output)
@@ -37,17 +37,17 @@ Options:
   --help, -h         Show this help message
 
 Examples:
-  codex-proxy                    Start proxy on default port 3333
-  codex-proxy --debug            Start with debug logging enabled
-  codex-proxy --port 4000        Start on port 4000
-  codex-proxy -p 4000 -d         Start on port 4000 with debug logging
+  claude-code-proxy                    Start proxy on default port 3333
+  claude-code-proxy --debug            Start with debug logging enabled
+  claude-code-proxy --port 4000        Start on port 4000
+  claude-code-proxy -p 4000 -d         Start on port 4000 with debug logging
 
 Configure Claude Code:
   export ANTHROPIC_AUTH_TOKEN="dummy"
   export ANTHROPIC_BASE_URL="http://localhost:3333"
   claude
 
-For more info: https://github.com/yourusername/codex-proxy
+For more info: https://github.com/Saradhii/Claude-Code-Proxy
 `);
     process.exit(0);
   }
@@ -330,7 +330,7 @@ app.listen(PORT, async () => {
   const banner = `
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
-║   🚀 Anthropic <-> OpenAI Proxy Server                       ║
+║   🚀 Claude Code Proxy Server                               ║
 ║                                                               ║
 ║   Enables Claude Code to work with GLM-4.5-Air model        ║
 ║   via format conversion                                       ║

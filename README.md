@@ -1,4 +1,4 @@
-# Codex Proxy - Claude Code to GLM-4.5-Air
+# Claude Code Proxy - Claude Code to GLM-4.5-Air
 
 A format conversion proxy server that enables using **GLM-4.5-Air model with Claude Code CLI** including **full tool calling support**.
 
@@ -23,15 +23,15 @@ This proxy acts as a bridge between Claude Code and the GLM-4.5-Air model with f
 
 ### 1. Install globally via npm
 ```bash
-npm install -g codex-proxy
+npm install -g claude-code-proxy
 ```
 
 ### 2. Start the proxy
 ```bash
-codex-proxy              # Normal mode
-codex-proxy --debug      # Debug mode (verbose logging)
-codex-proxy --port 4000  # Custom port
-codex-proxy --help       # Show all options
+claude-code-proxy              # Normal mode
+claude-code-proxy --debug      # Debug mode (verbose logging)
+claude-code-proxy --port 4000  # Custom port
+claude-code-proxy --help       # Show all options
 ```
 
 ### 3. Configure Claude Code
