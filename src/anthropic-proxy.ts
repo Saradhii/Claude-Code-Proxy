@@ -5,18 +5,26 @@
  * Bridges Claude Code CLI with GLM-4.5-Air model via format conversion
  */
 
-import express from "express";
+import express, { Request, Response } from "express";
 import fetch from "node-fetch";
 import cors from "cors";
 import dotenv from "dotenv";
 import { anthropicToOpenAI, openAIToAnthropic, openAIStreamToAnthropic } from "./format-converter.js";
+import {
+  AnthropicRequest,
+  AnthropicErrorResponse,
+  Colors,
+  LogLevel,
+  HealthCheckResponse,
+  ModelsResponse
+} from "./types/index.js";
 
 dotenv.config();
 
 // Parse CLI arguments
 const args = process.argv.slice(2);
 let cliDebug = false;
-let cliPort = null;
+let cliPort: number | null = null;
 
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
@@ -62,11 +70,11 @@ app.use(cors());
 const CHUTES_API_TOKEN = process.env.CHUTES_API_TOKEN || "cpk_f3594e7f33e34d7f838548efa1a6cd23.fe615caf1963556da89d0cf539a5595a.E1idJbvD2s1V7C1yPF8tdySXPIvZEg1e";
 const CHUTES_API_URL = process.env.CHUTES_API_URL || "https://llm.chutes.ai/v1/chat/completions";
 const CHUTES_MODEL = process.env.CHUTES_MODEL || "zai-org/GLM-4.5-Air";
-const PORT = cliPort || parseInt(process.env.PORT) || 3333;
+const PORT = cliPort || parseInt(process.env.PORT || '3333');
 const DEBUG = cliDebug || process.env.DEBUG === 'true';
 
 // Logging utilities
-const colors = {
+const colors: Colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
   dim: '\x1b[2m',
@@ -82,9 +90,9 @@ const colors = {
 /**
  * Color-coded logging utility
  */
-function log(level, message, data = null) {
+function log(level: LogLevel, message: string, data?: any): void {
   const timestamp = new Date().toISOString();
-  const levelColors = {
+  const levelColors: Record<LogLevel, string> = {
     INFO: colors.cyan,
     WARN: colors.yellow,
     ERROR: colors.red,
@@ -103,7 +111,7 @@ function log(level, message, data = null) {
 /**
  * Log incoming request details
  */
-function logRequest(req) {
+function logRequest(req: Request): void {
   const separator = '='.repeat(80);
   console.log(`\n${colors.bright}${colors.blue}${separator}${colors.reset}`);
   log('INFO', `📥 Incoming Request: ${req.method} ${req.path}`);
@@ -115,7 +123,7 @@ function logRequest(req) {
 /**
  * Log format conversion details (debug mode only)
  */
-function logConversion(direction, input, output) {
+function logConversion(direction: 'to-openai' | 'to-anthropic', input: any, output: any): void {
   if (!DEBUG) return;
 
   const arrow = direction === 'to-openai' ? '→' : '←';
@@ -130,7 +138,7 @@ function logConversion(direction, input, output) {
 /**
  * Log outgoing request to GLM-4.5-Air
  */
-function logChutesRequest(url, payload) {
+function logChutesRequest(url: string, payload: any): void {
   log('INFO', `📤 Forwarding to GLM-4.5-Air: ${url}`);
   log('DEBUG', 'Request Payload:', payload);
 }
@@ -138,7 +146,7 @@ function logChutesRequest(url, payload) {
 /**
  * Log response from GLM-4.5-Air
  */
-function logChutesResponse(status, data) {
+function logChutesResponse(status: number, data: any): void {
   if (status >= 200 && status < 300) {
     log('SUCCESS', `✅ GLM-4.5-Air Response: ${status}`);
   } else {
@@ -150,13 +158,13 @@ function logChutesResponse(status, data) {
 /**
  * Log final response to Claude Code
  */
-function logFinalResponse(response) {
+function logFinalResponse(response: any): void {
   log('SUCCESS', '📤 Sending Final Response to Claude Code');
   log('DEBUG', 'Final Response:', response);
 }
 
 // Health check endpoint
-app.get("/", (req, res) => {
+app.get("/", (_req: Request, res: Response<HealthCheckResponse>) => {
   log('INFO', 'Health check requested');
   res.json({
     status: "OK",
@@ -168,7 +176,7 @@ app.get("/", (req, res) => {
 });
 
 // Models endpoint (required by Claude Code)
-app.get("/v1/models", (req, res) => {
+app.get("/v1/models", (_req: Request, res: Response<ModelsResponse>) => {
   log('INFO', 'Models list requested');
   res.json({
     object: "list",
@@ -196,10 +204,10 @@ app.get("/v1/models", (req, res) => {
 });
 
 // Main messages endpoint - handles format conversion and proxying
-app.post("/v1/messages", async (req, res) => {
+app.post("/v1/messages", async (req: Request, res: Response): Promise<void> => {
   try {
     logRequest(req);
-    const anthropicRequest = req.body;
+    const anthropicRequest: AnthropicRequest = req.body;
 
     // Convert Anthropic request to OpenAI format
     log('INFO', '🔄 Converting Anthropic format to OpenAI format');
@@ -226,13 +234,17 @@ app.post("/v1/messages", async (req, res) => {
       const error = await chutesResponse.text();
       log('ERROR', `GLM-4.5-Air API error: ${chutesResponse.status}`);
       log('ERROR', 'Error details:', error);
-      return res.status(chutesResponse.status).json({
+
+      const errorResponse: AnthropicErrorResponse = {
         type: "error",
         error: {
           type: "api_error",
           message: error
         }
-      });
+      };
+
+      res.status(chutesResponse.status).json(errorResponse);
+      return;
     }
 
     // Handle streaming
@@ -245,55 +257,59 @@ app.post("/v1/messages", async (req, res) => {
 
       let buffer = '';
 
-      chutesResponse.body.on('data', (chunk) => {
-        buffer += chunk.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+      if (chutesResponse.body) {
+        chutesResponse.body.on('data', (chunk: Buffer) => {
+          buffer += chunk.toString();
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
 
-            if (data === '[DONE]') {
-              res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
-              log('INFO', '🏁 Stream completed');
-              continue;
-            }
-
-            try {
-              const openAIChunk = JSON.parse(data);
-              const anthropicEvent = openAIStreamToAnthropic(openAIChunk);
-
-              if (anthropicEvent) {
-                res.write(`event: ${anthropicEvent.type}\n`);
-                res.write(`data: ${JSON.stringify(anthropicEvent)}\n\n`);
-
-                if (DEBUG && anthropicEvent.type === 'content_block_delta') {
-                  process.stdout.write(colors.green + (anthropicEvent.delta.text || '') + colors.reset);
-                }
+              if (data === '[DONE]') {
+                res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+                log('INFO', '🏁 Stream completed');
+                continue;
               }
-            } catch (e) {
-              log('ERROR', 'Failed to parse SSE chunk', e.message);
+
+              try {
+                const openAIChunk = JSON.parse(data);
+                const anthropicEvent = openAIStreamToAnthropic(openAIChunk);
+
+                if (anthropicEvent) {
+                  res.write(`event: ${anthropicEvent.type}\n`);
+                  res.write(`data: ${JSON.stringify(anthropicEvent)}\n\n`);
+
+                  if (DEBUG && anthropicEvent.type === 'content_block_delta' &&
+                      'delta' in anthropicEvent &&
+                      'text' in anthropicEvent.delta) {
+                    process.stdout.write(colors.green + anthropicEvent.delta.text + colors.reset);
+                  }
+                }
+              } catch (e: any) {
+                log('ERROR', 'Failed to parse SSE chunk', e.message);
+              }
             }
           }
-        }
-      });
+        });
 
-      chutesResponse.body.on('end', () => {
-        res.end();
-        log('SUCCESS', '✅ Stream ended successfully');
-      });
+        chutesResponse.body.on('end', () => {
+          res.end();
+          log('SUCCESS', '✅ Stream ended successfully');
+        });
 
-      chutesResponse.body.on('error', (error) => {
-        log('ERROR', '❌ Stream error', error.message);
-        res.end();
-      });
+        chutesResponse.body.on('error', (error: Error) => {
+          log('ERROR', '❌ Stream error', error.message);
+          res.end();
+        });
+      }
 
     } else {
       // Non-streaming response
       log('INFO', '📄 Non-streaming response');
 
-      const openAIResponse = await chutesResponse.json();
+      const openAIResponse = await chutesResponse.json() as any;
       logChutesResponse(chutesResponse.status, openAIResponse);
 
       // Convert OpenAI response to Anthropic format
@@ -306,21 +322,24 @@ app.post("/v1/messages", async (req, res) => {
       res.json(anthropicResponse);
     }
 
-  } catch (error) {
+  } catch (error: any) {
     log('ERROR', '❌ Proxy error', error.message);
     console.error(error.stack);
-    res.status(500).json({
+
+    const errorResponse: AnthropicErrorResponse = {
       type: "error",
       error: {
         type: "api_error",
         message: error.message
       }
-    });
+    };
+
+    res.status(500).json(errorResponse);
   }
 });
 
 // Animation helper function
-async function printWithDelay(text, delay = 50) {
+async function printWithDelay(text: string, delay: number = 50): Promise<void> {
   process.stdout.write(text);
   await new Promise(resolve => setTimeout(resolve, delay));
 }
