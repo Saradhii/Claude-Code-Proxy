@@ -133,6 +133,7 @@ The proxy uses the following environment variables (in `.env`):
 ✅ **Format conversion** - Seamless Anthropic ↔ OpenAI translation
 ✅ **Free GLM-4.5-Air API** - Use GLM-4.5-Air at no cost
 ✅ **Multiple models** - Maps to Haiku, Sonnet, and Opus tiers
+✅ **TypeScript support** - Full type definitions and IntelliSense support
 
 ## Logging
 
@@ -154,6 +155,7 @@ The proxy provides color-coded logs for easy debugging:
 - `RESEARCH.md` - Complete research findings and solution approaches
 - `TEST-RESULTS.md` - GLM-4.5-Air API test results
 - `TESTING-GUIDE.md` - Comprehensive guide for testing and debugging the proxy
+- `TYPESCRIPT.md` - TypeScript usage guide and type definitions
 
 ## Support
 

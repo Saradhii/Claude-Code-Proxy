@@ -1,6 +1,6 @@
 {
   "name": "codex-proxy",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Format conversion proxy enabling Claude Code CLI to work with GLM-4.5-Air model including full tool calling support",
   "type": "module",
   "main": "dist/anthropic-proxy.js",
@@ -9,17 +9,21 @@
     "codex-proxy": "dist/anthropic-proxy.js"
   },
   "scripts": {
+    "prepublishOnly": "npm run clean && npm run build",
+    "prepack": "npm run build",
     "build": "tsc",
     "start": "node dist/anthropic-proxy.js",
     "dev": "npm run build && npm run start",
     "proxy": "npm run build && npm run start",
     "proxy:debug": "npm run build && DEBUG=true node dist/anthropic-proxy.js",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "preversion": "npm run type-check",
+    "version": "npm run build && git add dist",
+    "postversion": "git push && git push --tags"
   },
   "files": [
     "dist/",
-    "src/",
     "README.md",
     "QUICK-START.md",
     ".env.example"
@@ -37,7 +41,9 @@
     "streaming",
     "ai",
     "llm",
-    "cli"
+    "cli",
+    "typescript",
+    "types"
   ],
   "author": "Saradhi",
   "license": "MIT",
